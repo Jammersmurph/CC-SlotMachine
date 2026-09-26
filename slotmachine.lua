@@ -3,7 +3,8 @@
 -- Win output: redstone pulse on left
 
 local INPUT_SIDE = "right"
-local OUTPUT_SIDES = { "left", "top", "bottom" }
+local OUTPUT_SIDES = { "left", "top" }
+local BUSY_SIDE = "bottom"
 
 local SPIN_TIME = 2.5
 local REEL_DELAY = 0.5
@@ -275,12 +276,18 @@ end
 
 math.randomseed(os.epoch("utc"))
 for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, false) end
+redstone.setOutput(BUSY_SIDE, false)
 readyScreen()
 
 while true do
     while not redstone.getInput(INPUT_SIDE) do
         os.pullEvent("redstone")
     end
+
+    -- Lock payment immediately when a valid play begins.
+    -- Bottom remains continuously powered for the entire game,
+    -- including the result screen and any payout pulses.
+    redstone.setOutput(BUSY_SIDE, true)
 
     spin()
 
@@ -289,5 +296,7 @@ while true do
         os.pullEvent("redstone")
     end
 
+    -- The machine can accept payment again only after the round is fully over.
+    redstone.setOutput(BUSY_SIDE, false)
     readyScreen()
 end
