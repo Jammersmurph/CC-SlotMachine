@@ -18,6 +18,49 @@ local symbols = {
     {symbol = "#", color = colors.cyan}
 }
 
+local lossMessages = {
+    "Better luck next time!",
+    "So close!",
+    "Try again!",
+    "Not this time!",
+    "Almost had it!",
+    "Maybe next spin!",
+    "No jackpot today!",
+    "The reels say no!",
+    "Give it another shot!",
+    "Close, but no prize!",
+    "Lady Luck says nope!",
+    "You'll get 'em next time!",
+    "The house wins this one!",
+    "One more spin?",
+    "Ouch! So close!",
+    "No luck this round!",
+    "Better luck on the next one!",
+    "Jackpot narrowly escaped!",
+    "The jackpot lives another day!",
+    "Nice try!",
+    "Not quite!",
+    "Maybe the next one's lucky!",
+    "Fortune favors the next spin...",
+    "Those reels were not feeling it.",
+    "Denied by the reels!",
+    "Your jackpot is in another machine!",
+    "Three matching symbols? Apparently not.",
+    "The machine remains undefeated.",
+    "Luck.exe has stopped responding.",
+    "Skill issue. Probably.",
+    "The reels have spoken.",
+    "No dice! Well... no slots.",
+    "Jackpot says: maybe later.",
+    "A valiant attempt!",
+    "The odds strike again!",
+    "Back to the button!",
+    "Missed it by that much!",
+    "Fortune took the day off.",
+    "The jackpot dodged you!",
+    "Next spin could be the one!"
+}
+
 local monitor = peripheral.find("monitor")
 if not monitor then error("No monitor attached") end
 
@@ -126,7 +169,8 @@ local function spin()
         sleep(WIN_PULSE_TIME)
         redstone.setOutput(OUTPUT_SIDE, false)
     else
-        drawMachine(reels, "BETTER LUCK NEXT TIME", colors.red)
+        local lossMessage = lossMessages[math.random(1, #lossMessages)]
+        drawMachine(reels, lossMessage, colors.red)
         sleep(2)
     end
 end
