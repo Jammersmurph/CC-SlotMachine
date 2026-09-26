@@ -7,7 +7,7 @@ local OUTPUT_SIDES = { "left", "top", "bottom" }
 
 local SPIN_TIME = 2.5
 local REEL_DELAY = 0.5
-local WIN_DISPLAY_TIME = 10.0
+local WIN_DISPLAY_TIME = 3.0
 local WIN_PULSE_ON_TIME = 0.25
 local WIN_PULSE_OFF_TIME = 0.25
 
@@ -232,7 +232,7 @@ local function spin()
 
         playJackpotFanfare()
 
-        -- Keep the winner screen up for 10 seconds total before payout.
+        -- Keep the winner screen up for 3 seconds total before payout.
         sleep(math.max(0, WIN_DISPLAY_TIME - 1.12))
 
         -- Pulse left, top, and bottom together once per payout unit.
