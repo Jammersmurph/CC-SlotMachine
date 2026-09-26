@@ -3,7 +3,7 @@
 -- Win output: redstone pulse on left
 
 local INPUT_SIDE = "right"
-local OUTPUT_SIDE = "left"
+local OUTPUT_SIDES = { "left", "top", "bottom" }
 
 local SPIN_TIME = 2.5
 local REEL_DELAY = 0.5
@@ -165,9 +165,9 @@ local function spin()
         drawMachine(reels, "*** WINNER! ***", colors.lime)
         sleep(WIN_DISPLAY_TIME)
 
-        redstone.setOutput(OUTPUT_SIDE, true)
+        for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, true) end
         sleep(WIN_PULSE_TIME)
-        redstone.setOutput(OUTPUT_SIDE, false)
+        for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, false) end
     else
         local lossMessage = lossMessages[math.random(1, #lossMessages)]
         drawMachine(reels, lossMessage, colors.red)
@@ -181,7 +181,7 @@ local function readyScreen()
 end
 
 math.randomseed(os.epoch("utc"))
-redstone.setOutput(OUTPUT_SIDE, false)
+for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, false) end
 readyScreen()
 
 while true do
