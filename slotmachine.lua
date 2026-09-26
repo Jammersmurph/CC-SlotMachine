@@ -126,7 +126,9 @@ local function spin()
 end
 
 local function readyScreen()
-    local reels = { symbols[1], symbols[1], symbols[1] }
+    -- Deliberately use three different symbols so the idle screen
+    -- cannot be mistaken for a winning result.
+    local reels = { symbols[1], symbols[2], symbols[3] }
     drawMachine(reels, "READY TO PLAY", colors.lime)
 end
 
@@ -141,9 +143,11 @@ while true do
 
     spin()
 
+    -- Wait for the trigger to be released. Keep the final spin
+    -- result on screen instead of replacing it with a fake "777" idle display.
     while redstone.getInput(INPUT_SIDE) do
         os.pullEvent("redstone")
     end
 
-    readyScreen()
+    -- The final result stays visible until the next trigger.
 end
