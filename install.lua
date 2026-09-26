@@ -2,8 +2,9 @@ local programUrl = "https://raw.githubusercontent.com/Jammersmurph/CC-SlotMachin
 local programPath = "slotmachine.lua"
 
 local startup = [[
-local url = "https://raw.githubusercontent.com/Jammersmurph/CC-SlotMachine/main/slotmachine.lua"
+local baseUrl = "https://raw.githubusercontent.com/Jammersmurph/CC-SlotMachine/main/slotmachine.lua"
 local path = "slotmachine.lua"
+local url = baseUrl .. "?t=" .. tostring(os.epoch("utc"))
 
 term.clear()
 term.setCursorPos(1, 1)
@@ -23,6 +24,8 @@ if response then
         file.close()
         updated = true
         print("Updated from GitHub.")
+        print("Bytes: " .. #data)
+        print("Build: multi-screen attract mode")
     end
 end
 
