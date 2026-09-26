@@ -8,7 +8,8 @@ local OUTPUT_SIDES = { "left", "top", "bottom" }
 local SPIN_TIME = 2.5
 local REEL_DELAY = 0.5
 local WIN_DISPLAY_TIME = 10.0
-local WIN_PULSE_TIME = 1.0
+local WIN_PULSE_ON_TIME = 0.25
+local WIN_PULSE_OFF_TIME = 0.25
 
 local symbols = {
     {symbol = "7", color = colors.red},
@@ -159,6 +160,23 @@ local function randomSymbol()
     return symbols[math.random(1, #symbols)]
 end
 
+local function pulsePayout(count)
+    for pulse = 1, count do
+        for _, side in ipairs(OUTPUT_SIDES) do
+            redstone.setOutput(side, true)
+        end
+        sleep(WIN_PULSE_ON_TIME)
+
+        for _, side in ipairs(OUTPUT_SIDES) do
+            redstone.setOutput(side, false)
+        end
+
+        if pulse < count then
+            sleep(WIN_PULSE_OFF_TIME)
+        end
+    end
+end
+
 local function spin()
     local reels = { randomSymbol(), randomSymbol(), randomSymbol() }
 
@@ -201,18 +219,24 @@ local function spin()
     local win = reels[1].symbol == reels[2].symbol and reels[2].symbol == reels[3].symbol
 
     if win then
-        -- Keep the winning reels and WINNER message visible for 10 seconds
-        -- before sending the payout signal.
-        drawMachine(reels, "*** WINNER! ***", colors.lime)
+        -- Triple 7 is the rare jackpot: 20 payout pulses.
+        -- Any other matching triple is a normal jackpot: 10 payout pulses.
+        local rareJackpot = reels[1].symbol == "7"
+        local payoutPulses = rareJackpot and 20 or 10
+
+        if rareJackpot then
+            drawMachine(reels, "*** MEGA JACKPOT! ***", colors.yellow)
+        else
+            drawMachine(reels, "*** WINNER! ***", colors.lime)
+        end
+
         playJackpotFanfare()
 
-        -- Keep the WINNER screen up for 10 seconds total. The fanfare above
-        -- takes about 1.1 seconds, so wait out the remainder.
+        -- Keep the winner screen up for 10 seconds total before payout.
         sleep(math.max(0, WIN_DISPLAY_TIME - 1.12))
 
-        for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, true) end
-        sleep(WIN_PULSE_TIME)
-        for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, false) end
+        -- Pulse left, top, and bottom together once per payout unit.
+        pulsePayout(payoutPulses)
     else
         local lossMessage = lossMessages[math.random(1, #lossMessages)]
         drawMachine(reels, lossMessage, colors.red)
