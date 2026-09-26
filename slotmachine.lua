@@ -182,11 +182,11 @@ local function spin()
     local reels = { randomSymbol(), randomSymbol(), randomSymbol() }
 
     -- Decide the outcome independently of the animation:
-    -- 1% Mega Jackpot, 5% regular Jackpot, 20% Redo/refund, 74% loss.
+    -- 1% Mega Jackpot, 5% regular Jackpot, 25% Redo/refund, 69% loss.
     local outcomeRoll = math.random(1, 100)
     local megaJackpot = outcomeRoll == 1
     local jackpot = outcomeRoll >= 2 and outcomeRoll <= 6
-    local redo = outcomeRoll >= 7 and outcomeRoll <= 26
+    local redo = outcomeRoll >= 7 and outcomeRoll <= 31
 
     local startTime = os.clock()
     while os.clock() - startTime < SPIN_TIME do
