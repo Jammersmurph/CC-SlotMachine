@@ -182,11 +182,11 @@ local function spin()
     local reels = { randomSymbol(), randomSymbol(), randomSymbol() }
 
     -- Decide the outcome independently of the animation:
-    -- 5% Mega Jackpot, 10% regular Jackpot, 25% Redo/refund, 60% loss.
+    -- 1% Mega Jackpot, 5% regular Jackpot, 20% Redo/refund, 74% loss.
     local outcomeRoll = math.random(1, 100)
-    local megaJackpot = outcomeRoll >= 1 and outcomeRoll <= 5
-    local jackpot = outcomeRoll >= 6 and outcomeRoll <= 15
-    local redo = outcomeRoll >= 16 and outcomeRoll <= 40
+    local megaJackpot = outcomeRoll == 1
+    local jackpot = outcomeRoll >= 2 and outcomeRoll <= 6
+    local redo = outcomeRoll >= 7 and outcomeRoll <= 26
 
     local startTime = os.clock()
     while os.clock() - startTime < SPIN_TIME do
@@ -336,14 +336,14 @@ local function drawPrizePage(frame)
     local y = math.max(6, math.floor(height / 2) - 4)
 
     centerText(y,     "MEGA JACKPOT", colors.yellow)
-    centerText(y + 1, "5% CHANCE  -  30 COINS", colors.white)
+    centerText(y + 1, "1% CHANCE  -  30 COINS", colors.white)
     centerText(y + 3, "JACKPOT", colors.lime)
-    centerText(y + 4, "10% CHANCE -  15 COINS", colors.white)
+    centerText(y + 4, "5% CHANCE  -  15 COINS", colors.white)
     centerText(y + 6, "REDO / REFUND", colors.cyan)
-    centerText(y + 7, "25% CHANCE  -  5 COINS", colors.white)
+    centerText(y + 7, "20% CHANCE  -  5 COINS", colors.white)
 
     if y + 9 <= height - 2 then
-        centerText(y + 9, "LOSS: 60%", colors.lightGray)
+        centerText(y + 9, "LOSS: 74%", colors.lightGray)
     end
 end
 
