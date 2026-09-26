@@ -180,6 +180,12 @@ end
 local function spin()
     local reels = { randomSymbol(), randomSymbol(), randomSymbol() }
 
+    -- Decide the outcome independently of the animation:
+    -- 1% Mega Jackpot, 5% regular Jackpot, 94% loss.
+    local outcomeRoll = math.random(1, 100)
+    local megaJackpot = outcomeRoll == 1
+    local jackpot = outcomeRoll >= 2 and outcomeRoll <= 6
+
     local startTime = os.clock()
     while os.clock() - startTime < SPIN_TIME do
         reels[1] = randomSymbol()
@@ -213,29 +219,31 @@ local function spin()
         sleep(0.08)
     end
 
-    reels[3] = randomSymbol()
+    -- Force the displayed final reels to match the pre-selected outcome.
+    if megaJackpot then
+        reels = { symbols[1], symbols[1], symbols[1] } -- 777
+    elseif jackpot then
+        local winningSymbol = symbols[math.random(2, #symbols)]
+        reels = { winningSymbol, winningSymbol, winningSymbol }
+    else
+        -- A loss must never accidentally display three matching symbols.
+        repeat
+            reels[3] = randomSymbol()
+        until not (reels[1].symbol == reels[2].symbol and reels[2].symbol == reels[3].symbol)
+    end
     playReelStop(3)
 
-    local win = reels[1].symbol == reels[2].symbol and reels[2].symbol == reels[3].symbol
+    if megaJackpot or jackpot then
+        local payoutPulses = megaJackpot and 20 or 10
 
-    if win then
-        -- Triple 7 is the rare jackpot: 20 payout pulses.
-        -- Any other matching triple is a normal jackpot: 10 payout pulses.
-        local rareJackpot = reels[1].symbol == "7"
-        local payoutPulses = rareJackpot and 20 or 10
-
-        if rareJackpot then
+        if megaJackpot then
             drawMachine(reels, "*** MEGA JACKPOT! ***", colors.yellow)
         else
             drawMachine(reels, "*** WINNER! ***", colors.lime)
         end
 
         playJackpotFanfare()
-
-        -- Keep the winner screen up for 3 seconds total before payout.
         sleep(math.max(0, WIN_DISPLAY_TIME - 1.12))
-
-        -- Pulse left, top, and bottom together once per payout unit.
         pulsePayout(payoutPulses)
     else
         local lossMessage = lossMessages[math.random(1, #lossMessages)]
