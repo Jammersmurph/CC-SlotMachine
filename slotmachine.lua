@@ -269,75 +269,133 @@ local function spin()
     end
 end
 
-local attractFrames = {
-    { symbols[1], symbols[2], symbols[3] },
-    { symbols[2], symbols[3], symbols[4] },
-    { symbols[3], symbols[4], symbols[5] },
-    { symbols[4], symbols[5], symbols[1] },
-    { symbols[5], symbols[1], symbols[2] }
-}
+local ATTRACT_PAGE_SECONDS = 4.0
+local ATTRACT_FRAME_SECONDS = 0.35
 
-local function drawScreensaver(frame)
-    local reels = attractFrames[((frame - 1) % #attractFrames) + 1]
-
+local function clearIdle()
     monitor.setBackgroundColor(colors.black)
+    monitor.setTextColor(colors.white)
     monitor.clear()
+end
 
-    -- Animated marquee border.
-    local borderColors = { colors.yellow, colors.orange, colors.red, colors.lime, colors.cyan }
-    local borderColor = borderColors[((frame - 1) % #borderColors) + 1]
-    monitor.setBackgroundColor(borderColor)
-    monitor.setTextColor(colors.black)
+local function drawIdleBorder(frame)
+    local palette = { colors.yellow, colors.orange, colors.red, colors.lime, colors.cyan, colors.magenta }
+    local color = palette[((frame - 1) % #palette) + 1]
+    monitor.setBackgroundColor(color)
     monitor.setCursorPos(1, 1)
     monitor.write(string.rep(" ", width))
     monitor.setCursorPos(1, height)
     monitor.write(string.rep(" ", width))
-
-    centerText(2, "*** LUCKY SLOTS ***", colors.yellow)
-    centerText(3, "5 SPURS PER PLAY", colors.white)
-
-    -- Main animated reels.
-    local reelWidth = 7
-    local reelHeight = 5
-    local spacing = 2
-    local totalWidth = (reelWidth * 3) + (spacing * 2)
-    local startX = math.floor((width - totalWidth) / 2) + 1
-    local reelY = math.max(5, math.floor(height / 2) - 2)
-
-    for i = 1, 3 do
-        local x = startX + ((i - 1) * (reelWidth + spacing))
-        fill(x, reelY, reelWidth, reelHeight, colors.white)
-        local s = reels[i]
-        monitor.setBackgroundColor(colors.white)
-        monitor.setTextColor(s.color)
-        monitor.setCursorPos(x + math.floor(reelWidth / 2), reelY + math.floor(reelHeight / 2))
-        monitor.write(s.symbol)
-    end
-
-    -- Prize information when there is enough vertical room.
-    if height >= 17 then
-        centerText(height - 6, "PRIZES & ODDS", colors.white)
-        centerText(height - 5, "MEGA 1% - 30", colors.yellow)
-        centerText(height - 4, "JACKPOT 5% - 20", colors.lime)
-        centerText(height - 3, "REDO 25% - 5", colors.cyan)
-    elseif height >= 16 then
-        centerText(height - 5, "MEGA 1%/30  JACKPOT 5%/20", colors.yellow)
-        centerText(height - 4, "REDO 25%/5", colors.cyan)
-    end
-
-    local blinkColor = (frame % 2 == 0) and colors.lime or colors.white
-    centerText(height - 2, "Press Button to play!", blinkColor)
     monitor.setBackgroundColor(colors.black)
 end
 
+local function drawLogoPage(frame)
+    clearIdle()
+    drawIdleBorder(frame)
+
+    local logoColors = { colors.yellow, colors.orange, colors.red, colors.lime, colors.cyan }
+    local logoColor = logoColors[((frame - 1) % #logoColors) + 1]
+    local pulse = (frame % 2 == 0) and "*" or "+"
+
+    centerText(math.max(3, math.floor(height / 2) - 4), pulse .. " LUCKY SLOTS " .. pulse, logoColor)
+    centerText(math.max(5, math.floor(height / 2) - 2), "7   $   *   O   #", colors.white)
+
+    local wave = { symbols[((frame - 1) % #symbols) + 1],
+                   symbols[(frame % #symbols) + 1],
+                   symbols[((frame + 1) % #symbols) + 1] }
+    local text = wave[1].symbol .. "     " .. wave[2].symbol .. "     " .. wave[3].symbol
+    centerText(math.floor(height / 2), text, logoColor)
+
+    centerText(math.min(height - 3, math.floor(height / 2) + 3), "TRY YOUR LUCK!", colors.lime)
+    centerText(height - 2, "Enter 5 coins to play", colors.white)
+end
+
+local function drawPricePage(frame)
+    clearIdle()
+    drawIdleBorder(frame)
+
+    centerText(3, "HOW TO PLAY", colors.yellow)
+    centerText(math.max(6, math.floor(height / 2) - 2), "ENTER", colors.white)
+
+    local coinColor = (frame % 2 == 0) and colors.yellow or colors.orange
+    centerText(math.max(8, math.floor(height / 2)), "[ 5 COINS ]", coinColor)
+    centerText(math.max(10, math.floor(height / 2) + 2), "TO PLAY", colors.lime)
+
+    if height >= 16 then
+        centerText(height - 5, "One payment = one spin", colors.lightGray)
+        centerText(height - 4, "Wait for the reels...", colors.lightGray)
+    end
+    centerText(height - 2, "Good luck!", colors.cyan)
+end
+
+local function drawPrizePage(frame)
+    clearIdle()
+    drawIdleBorder(frame)
+
+    centerText(3, "PRIZES & CHANCES", colors.yellow)
+    local y = math.max(6, math.floor(height / 2) - 4)
+
+    centerText(y,     "MEGA JACKPOT", colors.yellow)
+    centerText(y + 1, "1% CHANCE  -  30 COINS", colors.white)
+    centerText(y + 3, "JACKPOT", colors.lime)
+    centerText(y + 4, "5% CHANCE  -  20 COINS", colors.white)
+    centerText(y + 6, "REDO / REFUND", colors.cyan)
+    centerText(y + 7, "25% CHANCE  -  5 COINS", colors.white)
+
+    if y + 9 <= height - 2 then
+        centerText(y + 9, "LOSS: 69%", colors.lightGray)
+    end
+end
+
+local function drawSymbolsPage(frame)
+    clearIdle()
+    drawIdleBorder(frame)
+
+    centerText(3, "LUCKY SYMBOLS", colors.yellow)
+    local baseY = math.max(6, math.floor(height / 2) - 3)
+
+    local spacing = math.max(4, math.floor(width / (#symbols + 1)))
+    local total = spacing * (#symbols - 1)
+    local startX = math.max(1, math.floor((width - total) / 2))
+
+    for i, s in ipairs(symbols) do
+        local x = startX + ((i - 1) * spacing)
+        monitor.setCursorPos(math.min(width, x), baseY)
+        monitor.setTextColor(s.color)
+        monitor.setBackgroundColor(colors.black)
+        monitor.write(s.symbol)
+    end
+
+    centerText(baseY + 3, "MATCH 3 FOR A JACKPOT", colors.lime)
+    centerText(baseY + 5, "777 = MEGA JACKPOT", colors.red)
+
+    local blinkColor = (frame % 2 == 0) and colors.white or colors.yellow
+    centerText(height - 2, "Enter 5 coins to play", blinkColor)
+end
+
+local attractPages = {
+    drawLogoPage,
+    drawPricePage,
+    drawPrizePage,
+    drawSymbolsPage
+}
+
 local function waitForPlay()
+    local page = 1
     local frame = 1
+    local pageStarted = os.clock()
 
     while not redstone.getInput(INPUT_SIDE) do
-        drawScreensaver(frame)
+        attractPages[page](frame)
         frame = frame + 1
 
-        local timer = os.startTimer(0.45)
+        if os.clock() - pageStarted >= ATTRACT_PAGE_SECONDS then
+            page = (page % #attractPages) + 1
+            pageStarted = os.clock()
+            frame = 1
+        end
+
+        local timer = os.startTimer(ATTRACT_FRAME_SECONDS)
         while true do
             local event, id = os.pullEvent()
             if event == "redstone" and redstone.getInput(INPUT_SIDE) then
