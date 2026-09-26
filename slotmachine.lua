@@ -241,7 +241,7 @@ local function spin()
     playReelStop(3)
 
     if megaJackpot or jackpot then
-        local payoutPulses = megaJackpot and 30 or 20
+        local payoutPulses = megaJackpot and 30 or 15
 
         if megaJackpot then
             drawMachine(reels, "*** MEGA JACKPOT! ***", colors.yellow)
@@ -338,7 +338,7 @@ local function drawPrizePage(frame)
     centerText(y,     "MEGA JACKPOT", colors.yellow)
     centerText(y + 1, "5% CHANCE  -  30 COINS", colors.white)
     centerText(y + 3, "JACKPOT", colors.lime)
-    centerText(y + 4, "10% CHANCE -  20 COINS", colors.white)
+    centerText(y + 4, "10% CHANCE -  15 COINS", colors.white)
     centerText(y + 6, "REDO / REFUND", colors.cyan)
     centerText(y + 7, "25% CHANCE  -  5 COINS", colors.white)
 
