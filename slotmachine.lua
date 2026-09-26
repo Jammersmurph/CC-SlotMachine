@@ -241,7 +241,7 @@ local function spin()
     playReelStop(3)
 
     if megaJackpot or jackpot then
-        local payoutPulses = megaJackpot and 20 or 10
+        local payoutPulses = megaJackpot and 30 or 20
 
         if megaJackpot then
             drawMachine(reels, "*** MEGA JACKPOT! ***", colors.yellow)
