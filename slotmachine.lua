@@ -9,8 +9,8 @@ local BUSY_SIDE = "bottom"
 local SPIN_TIME = 2.5
 local REEL_DELAY = 0.5
 local WIN_DISPLAY_TIME = 3.0
-local WIN_PULSE_ON_TIME = 0.25
-local WIN_PULSE_OFF_TIME = 0.25
+local WIN_PULSE_ON_TIME = 0.5
+local WIN_PULSE_OFF_TIME = 0.5
 
 local symbols = {
     {symbol = "7", color = colors.red},
