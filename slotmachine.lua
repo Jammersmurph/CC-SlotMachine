@@ -315,9 +315,14 @@ local function drawScreensaver(frame)
     end
 
     -- Prize information when there is enough vertical room.
-    if height >= 16 then
-        centerText(height - 5, "MEGA: 30   JACKPOT: 20", colors.yellow)
-        centerText(height - 4, "REDO: 5", colors.cyan)
+    if height >= 17 then
+        centerText(height - 6, "PRIZES & ODDS", colors.white)
+        centerText(height - 5, "MEGA 1% - 30", colors.yellow)
+        centerText(height - 4, "JACKPOT 5% - 20", colors.lime)
+        centerText(height - 3, "REDO 25% - 5", colors.cyan)
+    elseif height >= 16 then
+        centerText(height - 5, "MEGA 1%/30  JACKPOT 5%/20", colors.yellow)
+        centerText(height - 4, "REDO 25%/5", colors.cyan)
     end
 
     local blinkColor = (frame % 2 == 0) and colors.lime or colors.white
