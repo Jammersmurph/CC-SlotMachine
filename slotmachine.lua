@@ -7,6 +7,7 @@ local OUTPUT_SIDE = "left"
 
 local SPIN_TIME = 2.5
 local REEL_DELAY = 0.5
+local WIN_DISPLAY_TIME = 10.0
 local WIN_PULSE_TIME = 1.0
 
 local symbols = {
@@ -116,20 +117,23 @@ local function spin()
     local win = reels[1].symbol == reels[2].symbol and reels[2].symbol == reels[3].symbol
 
     if win then
+        -- Keep the winning reels and WINNER message visible for 10 seconds
+        -- before sending the payout signal.
         drawMachine(reels, "*** WINNER! ***", colors.lime)
+        sleep(WIN_DISPLAY_TIME)
+
         redstone.setOutput(OUTPUT_SIDE, true)
         sleep(WIN_PULSE_TIME)
         redstone.setOutput(OUTPUT_SIDE, false)
     else
         drawMachine(reels, "BETTER LUCK NEXT TIME", colors.red)
+        sleep(2)
     end
 end
 
 local function readyScreen()
-    -- Deliberately use three different symbols so the idle screen
-    -- cannot be mistaken for a winning result.
     local reels = { symbols[1], symbols[2], symbols[3] }
-    drawMachine(reels, "READY TO PLAY", colors.lime)
+    drawMachine(reels, "Press Button to play!", colors.lime)
 end
 
 math.randomseed(os.epoch("utc"))
@@ -143,11 +147,10 @@ while true do
 
     spin()
 
-    -- Wait for the trigger to be released. Keep the final spin
-    -- result on screen instead of replacing it with a fake "777" idle display.
+    -- Do not allow the same held signal to trigger another round.
     while redstone.getInput(INPUT_SIDE) do
         os.pullEvent("redstone")
     end
 
-    -- The final result stays visible until the next trigger.
+    readyScreen()
 end
