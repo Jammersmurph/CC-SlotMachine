@@ -269,20 +269,88 @@ local function spin()
     end
 end
 
-local function readyScreen()
-    local reels = { symbols[1], symbols[2], symbols[3] }
-    drawMachine(reels, "Press Button to play!", colors.lime)
+local attractFrames = {
+    { symbols[1], symbols[2], symbols[3] },
+    { symbols[2], symbols[3], symbols[4] },
+    { symbols[3], symbols[4], symbols[5] },
+    { symbols[4], symbols[5], symbols[1] },
+    { symbols[5], symbols[1], symbols[2] }
+}
+
+local function drawScreensaver(frame)
+    local reels = attractFrames[((frame - 1) % #attractFrames) + 1]
+
+    monitor.setBackgroundColor(colors.black)
+    monitor.clear()
+
+    -- Animated marquee border.
+    local borderColors = { colors.yellow, colors.orange, colors.red, colors.lime, colors.cyan }
+    local borderColor = borderColors[((frame - 1) % #borderColors) + 1]
+    monitor.setBackgroundColor(borderColor)
+    monitor.setTextColor(colors.black)
+    monitor.setCursorPos(1, 1)
+    monitor.write(string.rep(" ", width))
+    monitor.setCursorPos(1, height)
+    monitor.write(string.rep(" ", width))
+
+    centerText(2, "*** LUCKY SLOTS ***", colors.yellow)
+    centerText(3, "5 SPURS PER PLAY", colors.white)
+
+    -- Main animated reels.
+    local reelWidth = 7
+    local reelHeight = 5
+    local spacing = 2
+    local totalWidth = (reelWidth * 3) + (spacing * 2)
+    local startX = math.floor((width - totalWidth) / 2) + 1
+    local reelY = math.max(5, math.floor(height / 2) - 2)
+
+    for i = 1, 3 do
+        local x = startX + ((i - 1) * (reelWidth + spacing))
+        fill(x, reelY, reelWidth, reelHeight, colors.white)
+        local s = reels[i]
+        monitor.setBackgroundColor(colors.white)
+        monitor.setTextColor(s.color)
+        monitor.setCursorPos(x + math.floor(reelWidth / 2), reelY + math.floor(reelHeight / 2))
+        monitor.write(s.symbol)
+    end
+
+    -- Prize information when there is enough vertical room.
+    if height >= 16 then
+        centerText(height - 5, "MEGA: 30   JACKPOT: 20", colors.yellow)
+        centerText(height - 4, "REDO: 5", colors.cyan)
+    end
+
+    local blinkColor = (frame % 2 == 0) and colors.lime or colors.white
+    centerText(height - 2, "Press Button to play!", blinkColor)
+    monitor.setBackgroundColor(colors.black)
+end
+
+local function waitForPlay()
+    local frame = 1
+
+    while not redstone.getInput(INPUT_SIDE) do
+        drawScreensaver(frame)
+        frame = frame + 1
+
+        local timer = os.startTimer(0.45)
+        while true do
+            local event, id = os.pullEvent()
+            if event == "redstone" and redstone.getInput(INPUT_SIDE) then
+                return
+            elseif event == "timer" and id == timer then
+                break
+            end
+        end
+    end
 end
 
 math.randomseed(os.epoch("utc"))
 for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, false) end
 redstone.setOutput(BUSY_SIDE, false)
-readyScreen()
 
 while true do
-    while not redstone.getInput(INPUT_SIDE) do
-        os.pullEvent("redstone")
-    end
+    -- Animated attract mode runs until the play signal arrives.
+    waitForPlay()
 
     -- Lock payment immediately when a valid play begins.
     -- Bottom remains continuously powered for the entire game,
@@ -298,5 +366,4 @@ while true do
 
     -- The machine can accept payment again only after the round is fully over.
     redstone.setOutput(BUSY_SIDE, false)
-    readyScreen()
 end
