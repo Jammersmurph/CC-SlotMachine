@@ -383,16 +383,18 @@ local attractPages = {
 local function waitForPlay()
     local page = 1
     local frame = 1
-    local pageStarted = os.clock()
+    local framesPerPage = math.max(1, math.floor(ATTRACT_PAGE_SECONDS / ATTRACT_FRAME_SECONDS))
+    local framesOnPage = 0
 
     while not redstone.getInput(INPUT_SIDE) do
         attractPages[page](frame)
         frame = frame + 1
+        framesOnPage = framesOnPage + 1
 
-        if os.clock() - pageStarted >= ATTRACT_PAGE_SECONDS then
+        if framesOnPage >= framesPerPage then
             page = (page % #attractPages) + 1
-            pageStarted = os.clock()
             frame = 1
+            framesOnPage = 0
         end
 
         local timer = os.startTimer(ATTRACT_FRAME_SECONDS)
