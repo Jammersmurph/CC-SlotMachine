@@ -181,10 +181,11 @@ local function spin()
     local reels = { randomSymbol(), randomSymbol(), randomSymbol() }
 
     -- Decide the outcome independently of the animation:
-    -- 1% Mega Jackpot, 5% regular Jackpot, 94% loss.
+    -- 1% Mega Jackpot, 5% regular Jackpot, 20% Redo/refund, 74% loss.
     local outcomeRoll = math.random(1, 100)
     local megaJackpot = outcomeRoll == 1
     local jackpot = outcomeRoll >= 2 and outcomeRoll <= 6
+    local redo = outcomeRoll >= 7 and outcomeRoll <= 26
 
     local startTime = os.clock()
     while os.clock() - startTime < SPIN_TIME do
@@ -225,6 +226,11 @@ local function spin()
     elseif jackpot then
         local winningSymbol = symbols[math.random(2, #symbols)]
         reels = { winningSymbol, winningSymbol, winningSymbol }
+    elseif redo then
+        -- Keep REDO visually distinct from a jackpot and from an accidental triple.
+        repeat
+            reels = { randomSymbol(), randomSymbol(), randomSymbol() }
+        until not (reels[1].symbol == reels[2].symbol and reels[2].symbol == reels[3].symbol)
     else
         -- A loss must never accidentally display three matching symbols.
         repeat
@@ -245,6 +251,15 @@ local function spin()
         playJackpotFanfare()
         sleep(math.max(0, WIN_DISPLAY_TIME - 1.12))
         pulsePayout(payoutPulses)
+    elseif redo then
+        drawMachine(reels, "*** REDO! PLAY AGAIN! ***", colors.cyan)
+        playNote("bell", 1.0, 12)
+        sleep(0.15)
+        playNote("bell", 1.0, 16)
+        sleep(math.max(0, WIN_DISPLAY_TIME - 0.15))
+
+        -- Refund the 5-pulse price to play.
+        pulsePayout(5)
     else
         local lossMessage = lossMessages[math.random(1, #lossMessages)]
         drawMachine(reels, lossMessage, colors.red)
