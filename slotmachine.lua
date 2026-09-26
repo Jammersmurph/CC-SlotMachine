@@ -64,6 +64,41 @@ local lossMessages = {
 local monitor = peripheral.find("monitor")
 if not monitor then error("No monitor attached") end
 
+-- Speaker is optional. The slot machine works normally without one.
+local speaker = peripheral.find("speaker")
+
+local function playNote(instrument, volume, pitch)
+    if speaker then
+        speaker.playNote(instrument, volume, pitch)
+    end
+end
+
+local function playSpinTick()
+    playNote("hat", 0.5, math.random(8, 16))
+end
+
+local function playReelStop(reel)
+    playNote("basedrum", 1.0, 6 + (reel * 2))
+end
+
+local function playLossSound()
+    if not speaker then return end
+    playNote("bass", 1.0, 10)
+    sleep(0.15)
+    playNote("bass", 1.0, 7)
+    sleep(0.15)
+    playNote("bass", 1.0, 4)
+end
+
+local function playJackpotFanfare()
+    if not speaker then return end
+    local notes = { 8, 12, 15, 20, 15, 20, 24 }
+    for _, pitch in ipairs(notes) do
+        playNote("bell", 1.5, pitch)
+        sleep(0.16)
+    end
+end
+
 monitor.setTextScale(1)
 monitor.setBackgroundColor(colors.black)
 monitor.clear()
@@ -133,29 +168,35 @@ local function spin()
         reels[2] = randomSymbol()
         reels[3] = randomSymbol()
         drawMachine(reels, "SPINNING...", colors.yellow)
+        playSpinTick()
         sleep(0.08)
     end
 
     reels[1] = randomSymbol()
+    playReelStop(1)
 
     local stopTime = os.clock()
     while os.clock() - stopTime < REEL_DELAY do
         reels[2] = randomSymbol()
         reels[3] = randomSymbol()
         drawMachine(reels, "SPINNING...", colors.yellow)
+        playSpinTick()
         sleep(0.08)
     end
 
     reels[2] = randomSymbol()
+    playReelStop(2)
 
     stopTime = os.clock()
     while os.clock() - stopTime < REEL_DELAY do
         reels[3] = randomSymbol()
         drawMachine(reels, "SPINNING...", colors.yellow)
+        playSpinTick()
         sleep(0.08)
     end
 
     reels[3] = randomSymbol()
+    playReelStop(3)
 
     local win = reels[1].symbol == reels[2].symbol and reels[2].symbol == reels[3].symbol
 
@@ -163,7 +204,11 @@ local function spin()
         -- Keep the winning reels and WINNER message visible for 10 seconds
         -- before sending the payout signal.
         drawMachine(reels, "*** WINNER! ***", colors.lime)
-        sleep(WIN_DISPLAY_TIME)
+        playJackpotFanfare()
+
+        -- Keep the WINNER screen up for 10 seconds total. The fanfare above
+        -- takes about 1.1 seconds, so wait out the remainder.
+        sleep(math.max(0, WIN_DISPLAY_TIME - 1.12))
 
         for _, side in ipairs(OUTPUT_SIDES) do redstone.setOutput(side, true) end
         sleep(WIN_PULSE_TIME)
@@ -171,7 +216,8 @@ local function spin()
     else
         local lossMessage = lossMessages[math.random(1, #lossMessages)]
         drawMachine(reels, lossMessage, colors.red)
-        sleep(2)
+        playLossSound()
+        sleep(1.55)
     end
 end
 
