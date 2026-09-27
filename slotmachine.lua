@@ -75,6 +75,25 @@ local function playNote(instrument, volume, pitch)
     end
 end
 
+local menuMelody = {
+    {12, 0.35}, {16, 0.35}, {19, 0.35}, {16, 0.35},
+    {14, 0.35}, {17, 0.35}, {21, 0.35}, {17, 0.35},
+    {12, 0.35}, {16, 0.35}, {19, 0.35}, {24, 0.35},
+    {21, 0.35}, {19, 0.35}, {16, 0.35}, {14, 0.35}
+}
+local menuNote = 1
+
+local function playMenuMusicStep()
+    if not speaker then return end
+    local note = menuMelody[menuNote]
+    speaker.playNote("harp", 0.55, note[1])
+    menuNote = (menuNote % #menuMelody) + 1
+end
+
+local function resetMenuMusic()
+    menuNote = 1
+end
+
 local function playSpinTick()
     playNote("hat", 0.5, math.random(8, 16))
 end
@@ -388,6 +407,7 @@ local function waitForPlay()
 
     while not redstone.getInput(INPUT_SIDE) do
         attractPages[page](frame)
+        playMenuMusicStep()
         frame = frame + 1
         framesOnPage = framesOnPage + 1
 
@@ -401,6 +421,7 @@ local function waitForPlay()
         while true do
             local event, id = os.pullEvent()
             if event == "redstone" and redstone.getInput(INPUT_SIDE) then
+                resetMenuMusic()
                 return
             elseif event == "timer" and id == timer then
                 break
